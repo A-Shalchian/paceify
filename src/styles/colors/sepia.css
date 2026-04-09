@@ -1,0 +1,17 @@
+[data-color="sepia"] {
+  --bg: #faf3e3;
+  --surface: #f4ecd8;
+  --elevated: #ede4cc;
+  --border: #d4c4a8;
+  --text: #3e2c1c;
+  --text-secondary: #5b4636;
+  --text-muted: #8b7355;
+  --accent: #8B5E3C;
+  --accent-glow: #8B5E3C22;
+  --accent-hover: #744E32;
+  --xp: #B8860B;
+  --streak: #C2571A;
+  --success: #5A7247;
+  --danger: #A0522D;
+  --companion: #6B8E8E;
+}

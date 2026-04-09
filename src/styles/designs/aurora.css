@@ -1,0 +1,21 @@
+[data-style="aurora"] {
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+  --border-width: 1px;
+  --border-style: solid;
+  --shadow-card: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --shadow-elevated: 0 16px 60px rgba(0, 0, 0, 0.2);
+  --shadow-button: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --backdrop-blur: 20px;
+  --backdrop-opacity: 0.4;
+  --font-heading: var(--font-geist-sans), system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-body: 0em;
+  --font-weight-heading: 700;
+  --font-weight-body: 400;
+}

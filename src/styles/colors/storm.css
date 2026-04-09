@@ -1,0 +1,17 @@
+[data-color="storm"] {
+  --bg: #0F1219;
+  --surface: #161B24;
+  --elevated: #1E2430;
+  --border: #2E3644;
+  --text: #E0E4EA;
+  --text-secondary: #8892A0;
+  --text-muted: #505A68;
+  --accent: #64748B;
+  --accent-glow: #64748B22;
+  --accent-hover: #556478;
+  --xp: #D4A830;
+  --streak: #D06840;
+  --success: #48C070;
+  --danger: #E05050;
+  --companion: #58B8D0;
+}

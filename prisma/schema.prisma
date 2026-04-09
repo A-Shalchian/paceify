@@ -1,0 +1,225 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public"]
+}
+
+// ─── PROFILES ───────────────────────────────────────────────────────────────
+// Profile.id matches auth.users.id (set by Supabase trigger on signup)
+
+model Profile {
+  id          String   @id @db.Uuid
+  username    String?  @unique @db.VarChar(30)
+  displayName String?  @map("display_name") @db.VarChar(100)
+  avatarUrl   String?  @map("avatar_url")
+  timezone    String   @default("America/Toronto") @db.VarChar(50)
+  onboardedAt DateTime? @map("onboarded_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  userStats   UserStats?
+  companion   Companion?
+  habits      Habit[]
+  habitLogs   HabitLog[]
+  streaks     Streak[]
+  xpLedger    XpLedger[]
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+// ─── RPG STATS & XP ────────────────────────────────────────────────────────
+
+model UserStats {
+  userId       String @id @map("user_id") @db.Uuid
+  totalXp      BigInt @default(0) @map("total_xp")
+  level        Int    @default(1)
+  strength     Int    @default(0)
+  vitality     Int    @default(0)
+  shield       Int    @default(0)
+  intelligence Int    @default(0)
+  wisdom       Int    @default(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+  @@schema("public")
+}
+
+model XpLedger {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  amount      Int
+  source      String   @db.VarChar(30)
+  sourceId    String?  @map("source_id") @db.Uuid
+  statType    String?  @map("stat_type") @db.VarChar(20)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("xp_ledger")
+  @@schema("public")
+}
+
+// ─── COMPANION ──────────────────────────────────────────────────────────────
+
+enum CreatureType {
+  phoenix
+  wolf
+  dragon
+  turtle
+  owl
+  fox
+
+  @@schema("public")
+}
+
+enum EvolutionStage {
+  egg
+  baby
+  juvenile
+  adult
+  elder
+  mythic
+
+  @@schema("public")
+}
+
+enum CompanionMood {
+  ecstatic
+  happy
+  content
+  neutral
+  sad
+  neglected
+
+  @@schema("public")
+}
+
+model Companion {
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @unique @map("user_id") @db.Uuid
+  creatureType    CreatureType   @map("creature_type")
+  name            String         @db.VarChar(50)
+  evolutionStage  EvolutionStage @default(egg) @map("evolution_stage")
+  mood            CompanionMood  @default(content)
+  statStrength    Int            @default(0) @map("stat_strength")
+  statVitality    Int            @default(0) @map("stat_vitality")
+  statShield      Int            @default(0) @map("stat_shield")
+  statIntelligence Int           @default(0) @map("stat_intelligence")
+  statWisdom      Int            @default(0) @map("stat_wisdom")
+  totalXp         BigInt         @default(0) @map("total_xp")
+  hunger          Int            @default(100)
+  lastFedAt       DateTime?      @map("last_fed_at") @db.Timestamptz(6)
+  lastInteractedAt DateTime?     @map("last_interacted_at") @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("companions")
+  @@schema("public")
+}
+
+// ─── HABITS ─────────────────────────────────────────────────────────────────
+
+enum HabitModule {
+  gym
+  calories
+  pills
+  french
+  journal
+  custom
+
+  @@schema("public")
+}
+
+enum HabitFrequency {
+  daily
+  weekly
+  specific_days
+  x_per_week
+
+  @@schema("public")
+}
+
+model Habit {
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  module          HabitModule    @default(custom)
+  name            String         @db.VarChar(150)
+  description     String?
+  icon            String?        @db.VarChar(50)
+  color           String?        @db.VarChar(7)
+  frequency       HabitFrequency @default(daily)
+  frequencyConfig Json?          @map("frequency_config")
+  targetValue     Decimal?       @map("target_value") @db.Decimal(10, 2)
+  targetUnit      String?        @map("target_unit") @db.VarChar(30)
+  xpReward        Int            @default(10) @map("xp_reward")
+  statType        String?        @map("stat_type") @db.VarChar(20)
+  isSystem        Boolean        @default(false) @map("is_system")
+  isArchived      Boolean        @default(false) @map("is_archived")
+  sortOrder       Int            @default(0) @map("sort_order")
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile  Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs     HabitLog[]
+  streaks  Streak[]
+
+  @@index([userId, isArchived])
+  @@map("habits")
+  @@schema("public")
+}
+
+model HabitLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  habitId    String   @map("habit_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  loggedDate DateTime @map("logged_date") @db.Date
+  value      Decimal? @db.Decimal(10, 2)
+  completed  Boolean  @default(true)
+  note       String?
+  xpAwarded  Int      @default(0) @map("xp_awarded")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  habit   Habit   @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, loggedDate])
+  @@index([userId, loggedDate(sort: Desc)])
+  @@map("habit_logs")
+  @@schema("public")
+}
+
+// ─── STREAKS ────────────────────────────────────────────────────────────────
+
+model Streak {
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  habitId           String?   @map("habit_id") @db.Uuid
+  currentCount      Int       @default(0) @map("current_count")
+  longestCount      Int       @default(0) @map("longest_count")
+  health            Int       @default(100)
+  maxHealth         Int       @default(100) @map("max_health")
+  graceDaysUsed     Int       @default(0) @map("grace_days_used")
+  graceDaysMax      Int       @default(1) @map("grace_days_max")
+  lastCompletedDate DateTime? @map("last_completed_date") @db.Date
+  startedAt         DateTime? @map("started_at") @db.Date
+  brokenAt          DateTime? @map("broken_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habit   Habit?  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("streaks")
+  @@schema("public")
+}
